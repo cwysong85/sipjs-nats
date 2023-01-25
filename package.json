@@ -8,6 +8,7 @@
     "url": "https://github.com/cwysong85/sipjs-nats"
   },
   "dependencies": {
+    "nats": "^2.11.0",
     "promiscuous": "^0.6.0"
   },
   "description": "A simple, intuitive, and powerful JavaScript signaling library",
@@ -26,7 +27,7 @@
   },
   "directories": {},
   "engines": {
-    "node": ">=0.8"
+    "node": ">=16"
   },
   "keywords": [
     "sip",

@@ -7,5 +7,6 @@ extend(exports, {
   dgram: require('dgram'),
   Promise: exports.Promise || require('promiscuous'),
   console: require('console'),
-  timers: require('timers')
+  timers: require('timers'),
+  nats: require('nats')
 });

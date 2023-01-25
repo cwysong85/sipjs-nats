@@ -7,7 +7,7 @@
  *        If no (or a falsy) value is provided, each Session will use a default (WebRTC) MediaHandler.
  * @param {Object} [configuration.media] gets passed to SIP.MediaHandler.getDescription as mediaHint
  */
-module.exports = function(SIP, environment) {
+module.exports = function (SIP, environment) {
     var UA,
         C = {
             // UA status codes
@@ -31,7 +31,7 @@ module.exports = function(SIP, environment) {
             MAX_FORWARDS: 70,
             TAG_LENGTH: 10
         };
-    UA = function(configuration) {
+    UA = function (configuration) {
         var self = this;
         // Helper function for forwarding events
         function selfEmit(type) {
@@ -72,7 +72,7 @@ module.exports = function(SIP, environment) {
         this.transportRecoveryTimer = null;
         Object.defineProperties(this, {
             transactionsCount: {
-                get: function() {
+                get: function () {
                     var type,
                         transactions = ['nist', 'nict', 'ist', 'ict'],
                         count = 0;
@@ -83,22 +83,22 @@ module.exports = function(SIP, environment) {
                 }
             },
             nictTransactionsCount: {
-                get: function() {
+                get: function () {
                     return Object.keys(this.transactions['nict']).length;
                 }
             },
             nistTransactionsCount: {
-                get: function() {
+                get: function () {
                     return Object.keys(this.transactions['nist']).length;
                 }
             },
             ictTransactionsCount: {
-                get: function() {
+                get: function () {
                     return Object.keys(this.transactions['ict']).length;
                 }
             },
             istTransactionsCount: {
-                get: function() {
+                get: function () {
                     return Object.keys(this.transactions['ist']).length;
                 }
             }
@@ -151,26 +151,26 @@ module.exports = function(SIP, environment) {
     //=================
     //  High Level API
     //=================
-    UA.prototype.register = function(options) {
+    UA.prototype.register = function (options) {
         this.configuration.register = true;
         this.registerContext.register(options);
         return this;
     };
 
-    UA.prototype.setVendorStatus = function(status) {
+    UA.prototype.setVendorStatus = function (status) {
         this.optionsStatus.vendor = status;
     };
 
-    UA.prototype.setDbStatus = function(status) {
+    UA.prototype.setDbStatus = function (status) {
         this.optionsStatus.dbstate = status;
     };
 
-    UA.prototype.setVendorNumbersStatus = function(status) {
+    UA.prototype.setVendorNumbersStatus = function (status) {
         this.optionsStatus.vendorNumbers = status;
     };
 
-    UA.prototype.setMaxSessionsStatus = function(status) {
-        this.optionsStatus.maxSessions= status;
+    UA.prototype.setMaxSessionsStatus = function (status) {
+        this.optionsStatus.maxSessions = status;
     };
 
     /**
@@ -179,19 +179,19 @@ module.exports = function(SIP, environment) {
      * @param {Boolean} [all] unregister all user bindings.
      *
      */
-    UA.prototype.unregister = function(options) {
+    UA.prototype.unregister = function (options) {
         this.configuration.register = false;
         this.registerContext.unregister(options);
         return this;
     };
-    UA.prototype.isRegistered = function() {
+    UA.prototype.isRegistered = function () {
         return this.registerContext.registered;
     };
     /**
      * Connection state.
      * @param {Boolean}
      */
-    UA.prototype.isConnected = function() {
+    UA.prototype.isConnected = function () {
         return this.transport ? this.transport.connected : false;
     };
     UA.prototype.afterConnected = function afterConnected(callback) {
@@ -211,12 +211,12 @@ module.exports = function(SIP, environment) {
      * @throws {TypeError}
      *
      */
-    UA.prototype.invite = function(target, options) {
+    UA.prototype.invite = function (target, options) {
         var context = new SIP.InviteClientContext(this, target, options);
         this.afterConnected(context.invite.bind(context));
         return context;
     };
-    UA.prototype.subscribe = function(target, event, options) {
+    UA.prototype.subscribe = function (target, event, options) {
         var sub = new SIP.Subscription(this, target, event, options);
         this.afterConnected(sub.subscribe.bind(sub));
         return sub;
@@ -231,7 +231,7 @@ module.exports = function(SIP, environment) {
      * @throws {TypeError}
      *
      */
-    UA.prototype.message = function(target, body, options) {
+    UA.prototype.message = function (target, body, options) {
         if (body === undefined) {
             throw new TypeError('Not enough arguments');
         }
@@ -241,7 +241,7 @@ module.exports = function(SIP, environment) {
         options.body = body;
         return this.request(SIP.C.MESSAGE, target, options);
     };
-    UA.prototype.notify = function(target, body, options) {
+    UA.prototype.notify = function (target, body, options) {
         if (body === undefined) {
             throw new TypeError('Not enough arguments');
         }
@@ -251,7 +251,7 @@ module.exports = function(SIP, environment) {
         options.body = body;
         return this.request(SIP.C.NOTIFY, target, options);
     };
-    UA.prototype.request = function(method, target, options) {
+    UA.prototype.request = function (method, target, options) {
         var req = new SIP.ClientContext(this, method, target, options);
         this.afterConnected(req.send.bind(req));
         return req;
@@ -260,7 +260,7 @@ module.exports = function(SIP, environment) {
      * Gracefully close.
      *
      */
-    UA.prototype.stop = function() {
+    UA.prototype.stop = function () {
         var session, subscription, applicant,
             ua = this;
 
@@ -315,7 +315,7 @@ module.exports = function(SIP, environment) {
      * Resume UA after being closed.
      *
      */
-    UA.prototype.start = function() {
+    UA.prototype.start = function () {
         var server;
         this.logger.log('user requested startup...');
         if (this.status === C.STATUS_INIT) {
@@ -344,18 +344,18 @@ module.exports = function(SIP, environment) {
      *
      * @returns {SIP.URI|undefined}
      */
-    UA.prototype.normalizeTarget = function(target) {
+    UA.prototype.normalizeTarget = function (target) {
         return SIP.Utils.normalizeTarget(target, this.configuration.hostportParams);
     };
     //===============================
     //  Private (For internal use)
     //===============================
-    UA.prototype.saveCredentials = function(credentials) {
+    UA.prototype.saveCredentials = function (credentials) {
         this.cache.credentials[credentials.realm] = this.cache.credentials[credentials.realm] || {};
         this.cache.credentials[credentials.realm][credentials.uri] = credentials;
         return this;
     };
-    UA.prototype.getCredentials = function(request) {
+    UA.prototype.getCredentials = function (request) {
         var realm, credentials;
         realm = request.ruri.host;
         if (this.cache.credentials[realm] && this.cache.credentials[realm][request.ruri]) {
@@ -364,7 +364,7 @@ module.exports = function(SIP, environment) {
         }
         return credentials;
     };
-    UA.prototype.getLogger = function(category, label) {
+    UA.prototype.getLogger = function (category, label) {
         return this.log.getLogger(category, label);
     };
     //==============================
@@ -376,7 +376,7 @@ module.exports = function(SIP, environment) {
      * @event
      * @param {SIP.Transport} transport.
      */
-    UA.prototype.onTransportClosed = function(transport) {
+    UA.prototype.onTransportClosed = function (transport) {
         // Run _onTransportError_ callback on every client transaction using _transport_
         var type, idx, length,
             client_transactions = ['nict', 'ict', 'nist', 'ist'];
@@ -400,7 +400,7 @@ module.exports = function(SIP, environment) {
      * @event
      * @param {SIP.Transport} transport.
      */
-    UA.prototype.onTransportError = function(transport) {
+    UA.prototype.onTransportError = function (transport) {
         var server;
         this.logger.log('transport ' + transport.server.ws_uri + ' failed | connection state set to ' + SIP.Transport.C.STATUS_ERROR);
         // Close sessions.
@@ -432,7 +432,7 @@ module.exports = function(SIP, environment) {
      * @event
      * @param {SIP.Transport} transport.
      */
-    UA.prototype.onTransportConnected = function(transport) {
+    UA.prototype.onTransportConnected = function (transport) {
         this.transport = transport;
         // Reset transport recovery counter
         this.transportRecoverAttempts = 0;
@@ -444,7 +444,7 @@ module.exports = function(SIP, environment) {
         this.status = C.STATUS_READY;
         this.error = null;
         if (this.configuration.register) {
-            this.configuration.authenticationFactory.initialize().then(function() {
+            this.configuration.authenticationFactory.initialize().then(function () {
                 this.registerContext.onTransportConnected();
             }.bind(this));
         }
@@ -458,7 +458,7 @@ module.exports = function(SIP, environment) {
      * @param {SIP.Transport} transport.
      * #param {Integer} attempts.
      */
-    UA.prototype.onTransportConnecting = function(transport, attempts) {
+    UA.prototype.onTransportConnecting = function (transport, attempts) {
         this.emit('connecting', {
             transport: transport,
             attempts: attempts
@@ -469,7 +469,7 @@ module.exports = function(SIP, environment) {
      * @private
      * @param {SIP.Transaction} transaction.
      */
-    UA.prototype.newTransaction = function(transaction) {
+    UA.prototype.newTransaction = function (transaction) {
         this.transactions[transaction.type][transaction.id] = transaction;
         this.emit('newTransaction', {
             transaction: transaction
@@ -480,7 +480,7 @@ module.exports = function(SIP, environment) {
      * @private
      * @param {SIP.Transaction} transaction.
      */
-    UA.prototype.destroyTransaction = function(transaction) {
+    UA.prototype.destroyTransaction = function (transaction) {
         delete this.transactions[transaction.type][transaction.id];
         this.emit('transactionDestroyed', {
             transaction: transaction
@@ -494,7 +494,7 @@ module.exports = function(SIP, environment) {
      * @private
      * @param {SIP.IncomingRequest} request.
      */
-    UA.prototype.receiveRequest = function(request) {
+    UA.prototype.receiveRequest = function (request) {
         var dialog, session, message,
             method = request.method,
             transaction,
@@ -508,7 +508,7 @@ module.exports = function(SIP, environment) {
         }
         // No need to look at URI since we are in UAS mode
         // C.W. added for UAS support
-        if(!this.configuration.doUAS) {
+        if (!this.configuration.doUAS) {
             // Check that request URI points to us
             if (!(ruriMatches(this.configuration.uri) || ruriMatches(this.contact.uri) || ruriMatches(this.contact.pub_gruu) || ruriMatches(this.contact.temp_gruu))) {
                 this.logger.warn('Request-URI does not point to us');
@@ -536,7 +536,7 @@ module.exports = function(SIP, environment) {
          */
         if (method === SIP.C.OPTIONS) {
 
-            if (this.configuration.optionsHandler == null){
+            if (this.configuration.optionsHandler == null) {
                 this.resolveOptions(200, request)
             } else {
                 this.resolveOptions(this.configuration.optionsHandler(), request);
@@ -593,7 +593,7 @@ module.exports = function(SIP, environment) {
                     if (!isMediaSupported || isMediaSupported()) {
                         session = new SIP.InviteServerContext(this, request);
                         session.replacee = replacedDialog && replacedDialog.owner;
-                        session.on('invite', function() {
+                        session.on('invite', function () {
                             self.emit('invite', this);
                         });
                     } else {
@@ -662,11 +662,11 @@ module.exports = function(SIP, environment) {
      * @param {SIP.IncomingRequest} request.
      * @returns {SIP.OutgoingSession|SIP.IncomingSession|null}
      */
-    UA.prototype.findSession = function(request) {
+    UA.prototype.findSession = function (request) {
         return this.sessions[request.call_id + request.from_tag] || this.sessions[request.call_id + request.to_tag] || null;
     };
 
-    UA.prototype.onSipOptions = function(request) {
+    UA.prototype.onSipOptions = function (request) {
         if (this.optionsStatus.vendor == false) {
             //respond 503
         } else if (this.optionsStatus.dbstate == false) {
@@ -685,7 +685,7 @@ module.exports = function(SIP, environment) {
      * @param {SIP.IncomingRequest}
      * @returns {SIP.Dialog|null}
      */
-    UA.prototype.findDialog = function(request) {
+    UA.prototype.findDialog = function (request) {
         return this.dialogs[request.call_id + request.from_tag + request.to_tag] || this.dialogs[request.call_id + request.to_tag + request.from_tag] || null;
     };
     /**
@@ -693,7 +693,7 @@ module.exports = function(SIP, environment) {
      * @private
      * @returns {Object} ws_server
      */
-    UA.prototype.getNextWsServer = function() {
+    UA.prototype.getNextWsServer = function () {
         // Order servers by weight
         var idx, length, ws_server,
             candidates = [];
@@ -717,7 +717,7 @@ module.exports = function(SIP, environment) {
      * Close all sessions on transport error.
      * @private
      */
-    UA.prototype.closeSessionsOnTransportError = function() {
+    UA.prototype.closeSessionsOnTransportError = function () {
         var idx;
         // Run _transportError_ for every Session
         for (idx in this.sessions) {
@@ -726,7 +726,7 @@ module.exports = function(SIP, environment) {
         // Call registerContext _onTransportClosed_
         this.registerContext.onTransportClosed();
     };
-    UA.prototype.recoverTransport = function(ua) {
+    UA.prototype.recoverTransport = function (ua) {
         var idx, length, k, nextRetry, count, server;
         ua = ua || this;
         count = ua.transportRecoverAttempts;
@@ -743,7 +743,7 @@ module.exports = function(SIP, environment) {
             count = 0;
         }
         this.logger.log('next connection attempt in ' + nextRetry + ' seconds');
-        this.transportRecoveryTimer = SIP.Timers.setTimeout(function() {
+        this.transportRecoveryTimer = SIP.Timers.setTimeout(function () {
             ua.transportRecoverAttempts = count + 1;
             new SIP.Transport(ua, server);
         }, nextRetry * 1000);
@@ -761,7 +761,7 @@ module.exports = function(SIP, environment) {
         }
         return authenticationFactory;
     }
-    UA.prototype.resolveOptions = function(statusCode, request) {
+    UA.prototype.resolveOptions = function (statusCode, request) {
         new SIP.Transactions.NonInviteServerTransaction(request, this);
         request.reply(statusCode, null, ['Allow: ' + SIP.Utils.getAllowedMethods(this), 'Accept: ' + C.ACCEPTED_BODY_TYPES]);
     }
@@ -770,7 +770,7 @@ module.exports = function(SIP, environment) {
      * @private
      * returns {Boolean}
      */
-    UA.prototype.loadConfig = function(configuration) {
+    UA.prototype.loadConfig = function (configuration) {
         // Settings and default values
         var parameter, value, checked_value, hostportParams, registrarServer,
             settings = {
@@ -801,7 +801,9 @@ module.exports = function(SIP, environment) {
                 usePreloadedRoute: false,
                 //string to be inserted into User-Agent request header
                 userAgentString: SIP.C.USER_AGENT,
-                bind: "127.0.0.1",
+                natsHost: "127.0.0.1",
+                natsPort: 4222,
+                natsSubscription: "sip-messages",
                 // Session parameters
                 iceCheckingTimeout: 5000,
                 noAnswerTimeout: 60,
@@ -834,7 +836,7 @@ module.exports = function(SIP, environment) {
             };
         // Pre-Configuration
         function aliasUnderscored(parameter, logger) {
-            var underscored = parameter.replace(/([a-z][A-Z])/g, function(m) {
+            var underscored = parameter.replace(/([a-z][A-Z])/g, function (m) {
                 return m[0] + '_' + m[1].toLowerCase();
             });
             if (parameter === underscored) {
@@ -881,7 +883,7 @@ module.exports = function(SIP, environment) {
                 }
                 // If it's a number with NaN value then also apply its default value.
                 // NOTE: JS does not allow "value === NaN", the following does the work:
-                else if (typeof(value) === 'number' && isNaN(value)) {
+                else if (typeof (value) === 'number' && isNaN(value)) {
                     continue;
                 }
                 checked_value = UA.configuration_check.optional[parameter](value);
@@ -933,8 +935,8 @@ module.exports = function(SIP, environment) {
         // C.W. added for UAS support
         if (settings.doUAS) {
             var port = 5060;
-            if(settings.uri.port) {
-              port = settings.uri.port;
+            if (settings.uri.port) {
+                port = settings.uri.port;
             }
             settings.viaHost = settings.uri.host;
             settings.viaPort = port;
@@ -944,7 +946,7 @@ module.exports = function(SIP, environment) {
                 uri: new SIP.URI('sip', settings.uri.user, settings.uri.host, port, {
                     transport: 'udp'
                 }),
-                toString: function(options) {
+                toString: function (options) {
                     options = options || {};
                     var anonymous = options.anonymous || null,
                         outbound = options.outbound || null,
@@ -958,8 +960,8 @@ module.exports = function(SIP, environment) {
             };
         } else {
             var port = 5060;
-            if(settings.uri.port) {
-              port = settings.uri.port;
+            if (settings.uri.port) {
+                port = settings.uri.port;
             }
             settings.viaHost = settings.uri.host;
             settings.viaPort = port;
@@ -969,7 +971,7 @@ module.exports = function(SIP, environment) {
                 uri: new SIP.URI('sip', settings.uri.user, settings.viaHost, port, {
                     transport: 'udp'
                 }),
-                toString: function(options) {
+                toString: function (options) {
                     options = options || {};
                     var anonymous = options.anonymous || null,
                         outbound = options.outbound || null,
@@ -1019,7 +1021,7 @@ module.exports = function(SIP, environment) {
      * Configuration Object skeleton.
      * @private
      */
-    UA.configuration_skeleton = (function() {
+    UA.configuration_skeleton = (function () {
         var idx, parameter,
             skeleton = {},
             parameters = [
@@ -1031,8 +1033,8 @@ module.exports = function(SIP, environment) {
                 "hackWssInTransport", //false
                 "iceCheckingTimeout", "instanceId", "noAnswerTimeout", // 30 seconds.
                 "password", "registerExpires", // 600 seconds.
-                "registrarServer", "reliable", "rel100", "replaces", "userAgentString", "bind", //SIP.C.USER_AGENT
-                "autostart", "doUAS", "cluster", "stunServers", "traceSip", "turnServers", "usePreloadedRoute", "wsServerMaxReconnection", "wsServerReconnectionTimeout", "mediaHandlerFactory","optionsHandler", "media", "mediaConstraints", "authenticationFactory",
+                "registrarServer", "reliable", "rel100", "replaces", "userAgentString", "natsHost", "natsPort", "natsSubscription", //SIP.C.USER_AGENT
+                "autostart", "doUAS", "cluster", "stunServers", "traceSip", "turnServers", "usePreloadedRoute", "wsServerMaxReconnection", "wsServerReconnectionTimeout", "mediaHandlerFactory", "optionsHandler", "media", "mediaConstraints", "authenticationFactory",
                 // Post-configuration generated parameters
                 "via_core_value", "viaHost", "viaPort"
             ];
@@ -1059,7 +1061,7 @@ module.exports = function(SIP, environment) {
     UA.configuration_check = {
         mandatory: {},
         optional: {
-            uri: function(uri) {
+            uri: function (uri) {
                 var parsed;
                 if (!(/^sip:/i).test(uri)) {
                     uri = SIP.C.SIP + ':' + uri;
@@ -1074,7 +1076,7 @@ module.exports = function(SIP, environment) {
                 }
             },
             //Note: this function used to call 'this.logger.error' but calling 'this' with anything here is invalid
-            wsServers: function(wsServers) {
+            wsServers: function (wsServers) {
                 var idx, length, url;
                 /* Allow defining wsServers parameter as:
                  *  String: "host"
@@ -1125,14 +1127,14 @@ module.exports = function(SIP, environment) {
                 }
                 return wsServers;
             },
-            authorizationUser: function(authorizationUser) {
+            authorizationUser: function (authorizationUser) {
                 if (SIP.Grammar.parse('"' + authorizationUser + '"', 'quoted_string') === -1) {
                     return;
                 } else {
                     return authorizationUser;
                 }
             },
-            connectionRecoveryMaxInterval: function(connectionRecoveryMaxInterval) {
+            connectionRecoveryMaxInterval: function (connectionRecoveryMaxInterval) {
                 var value;
                 if (SIP.Utils.isDecimal(connectionRecoveryMaxInterval)) {
                     value = Number(connectionRecoveryMaxInterval);
@@ -1141,7 +1143,7 @@ module.exports = function(SIP, environment) {
                     }
                 }
             },
-            connectionRecoveryMinInterval: function(connectionRecoveryMinInterval) {
+            connectionRecoveryMinInterval: function (connectionRecoveryMinInterval) {
                 var value;
                 if (SIP.Utils.isDecimal(connectionRecoveryMinInterval)) {
                     value = Number(connectionRecoveryMinInterval);
@@ -1150,24 +1152,24 @@ module.exports = function(SIP, environment) {
                     }
                 }
             },
-            displayName: function(displayName) {
+            displayName: function (displayName) {
                 if (SIP.Grammar.parse('"' + displayName + '"', 'displayName') === -1) {
                     return;
                 } else {
                     return displayName;
                 }
             },
-            hackViaTcp: function(hackViaTcp) {
+            hackViaTcp: function (hackViaTcp) {
                 if (typeof hackViaTcp === 'boolean') {
                     return hackViaTcp;
                 }
             },
-            hackIpInContact: function(hackIpInContact) {
+            hackIpInContact: function (hackIpInContact) {
                 if (typeof hackIpInContact === 'boolean') {
                     return hackIpInContact;
                 }
             },
-            iceCheckingTimeout: function(iceCheckingTimeout) {
+            iceCheckingTimeout: function (iceCheckingTimeout) {
                 if (SIP.Utils.isDecimal(iceCheckingTimeout)) {
                     if (iceCheckingTimeout < 500) {
                         return 5000;
@@ -1175,12 +1177,12 @@ module.exports = function(SIP, environment) {
                     return iceCheckingTimeout;
                 }
             },
-            hackWssInTransport: function(hackWssInTransport) {
+            hackWssInTransport: function (hackWssInTransport) {
                 if (typeof hackWssInTransport === 'boolean') {
                     return hackWssInTransport;
                 }
             },
-            instanceId: function(instanceId) {
+            instanceId: function (instanceId) {
                 if (typeof instanceId !== 'string') {
                     return;
                 }
@@ -1193,7 +1195,7 @@ module.exports = function(SIP, environment) {
                     return instanceId;
                 }
             },
-            noAnswerTimeout: function(noAnswerTimeout) {
+            noAnswerTimeout: function (noAnswerTimeout) {
                 var value;
                 if (SIP.Utils.isDecimal(noAnswerTimeout)) {
                     value = Number(noAnswerTimeout);
@@ -1202,10 +1204,10 @@ module.exports = function(SIP, environment) {
                     }
                 }
             },
-            password: function(password) {
+            password: function (password) {
                 return String(password);
             },
-            rel100: function(rel100) {
+            rel100: function (rel100) {
                 if (rel100 === SIP.C.supported.REQUIRED) {
                     return SIP.C.supported.REQUIRED;
                 } else if (rel100 === SIP.C.supported.SUPPORTED) {
@@ -1214,7 +1216,7 @@ module.exports = function(SIP, environment) {
                     return SIP.C.supported.UNSUPPORTED;
                 }
             },
-            replaces: function(replaces) {
+            replaces: function (replaces) {
                 if (replaces === SIP.C.supported.REQUIRED) {
                     return SIP.C.supported.REQUIRED;
                 } else if (replaces === SIP.C.supported.SUPPORTED) {
@@ -1223,12 +1225,12 @@ module.exports = function(SIP, environment) {
                     return SIP.C.supported.UNSUPPORTED;
                 }
             },
-            register: function(register) {
+            register: function (register) {
                 if (typeof register === 'boolean') {
                     return register;
                 }
             },
-            registerExpires: function(registerExpires) {
+            registerExpires: function (registerExpires) {
                 var value;
                 if (SIP.Utils.isDecimal(registerExpires)) {
                     value = Number(registerExpires);
@@ -1237,7 +1239,7 @@ module.exports = function(SIP, environment) {
                     }
                 }
             },
-            registrarServer: function(registrarServer) {
+            registrarServer: function (registrarServer) {
                 var parsed;
                 if (typeof registrarServer !== 'string') {
                     return;
@@ -1254,7 +1256,7 @@ module.exports = function(SIP, environment) {
                     return parsed;
                 }
             },
-            stunServers: function(stunServers) {
+            stunServers: function (stunServers) {
                 var idx, length, stun_server;
                 if (typeof stunServers === 'string') {
                     stunServers = [stunServers];
@@ -1275,24 +1277,24 @@ module.exports = function(SIP, environment) {
                 }
                 return stunServers;
             },
-            traceSip: function(traceSip) {
+            traceSip: function (traceSip) {
                 if (typeof traceSip === 'boolean') {
                     return traceSip;
                 }
             },
             // C.W. added for UAS support
-            doUAS: function(doUAS) {
+            doUAS: function (doUAS) {
                 if (typeof doUAS === 'boolean') {
                     return doUAS;
                 }
             },
             // C.W. added for node cluster support
-            cluster: function(cluster) {
+            cluster: function (cluster) {
                 if (typeof cluster === 'boolean') {
                     return cluster;
                 }
             },
-            turnServers: function(turnServers) {
+            turnServers: function (turnServers) {
                 var idx, jdx, length, turn_server, num_turn_server_urls, url;
                 if (turnServers instanceof Array) {
                     // Do nothing
@@ -1327,22 +1329,36 @@ module.exports = function(SIP, environment) {
                 }
                 return turnServers;
             },
-            userAgentString: function(userAgentString) {
+            userAgentString: function (userAgentString) {
                 if (typeof userAgentString === 'string') {
                     return userAgentString;
                 }
             },
-            bind: function(bind) {
-                if (typeof bind === 'string') {
-                    return bind;
+            natsHost: function (natsHost) {
+                if (typeof natsHost === 'string') {
+                    return natsHost;
                 }
             },
-            usePreloadedRoute: function(usePreloadedRoute) {
+            natsPort: function (natsPort) {
+                // if (!isNaN(natsPort)) {
+                //     value = Number(natsPort);
+                //     if (value > 0) {
+                //         return value;
+                //     }
+                // }
+                return natsPort;
+            },
+            natsSubscription: function (natsSubscription) {
+                if (typeof natsSubscription === 'string') {
+                    return natsSubscription;
+                }
+            },
+            usePreloadedRoute: function (usePreloadedRoute) {
                 if (typeof usePreloadedRoute === 'boolean') {
                     return usePreloadedRoute;
                 }
             },
-            wsServerMaxReconnection: function(wsServerMaxReconnection) {
+            wsServerMaxReconnection: function (wsServerMaxReconnection) {
                 var value;
                 if (SIP.Utils.isDecimal(wsServerMaxReconnection)) {
                     value = Number(wsServerMaxReconnection);
@@ -1351,7 +1367,7 @@ module.exports = function(SIP, environment) {
                     }
                 }
             },
-            wsServerReconnectionTimeout: function(wsServerReconnectionTimeout) {
+            wsServerReconnectionTimeout: function (wsServerReconnectionTimeout) {
                 var value;
                 if (SIP.Utils.isDecimal(wsServerReconnectionTimeout)) {
                     value = Number(wsServerReconnectionTimeout);
@@ -1360,17 +1376,17 @@ module.exports = function(SIP, environment) {
                     }
                 }
             },
-            autostart: function(autostart) {
+            autostart: function (autostart) {
                 if (typeof autostart === 'boolean') {
                     return autostart;
                 }
             },
-            optionsHandler: function(optionsHandler){
-                if (optionsHandler!=null && optionsHandler instanceof Function){
+            optionsHandler: function (optionsHandler) {
+                if (optionsHandler != null && optionsHandler instanceof Function) {
                     return optionsHandler;
                 }
             },
-            mediaHandlerFactory: function(mediaHandlerFactory) {
+            mediaHandlerFactory: function (mediaHandlerFactory) {
                 if (mediaHandlerFactory instanceof Function) {
                     var promisifiedFactory = function promisifiedFactory() {
                         var mediaHandler = mediaHandlerFactory.apply(this, arguments);
