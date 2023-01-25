@@ -1,1 +1,1 @@
-# sipjs-nats
+# SIP.js, but with NATs as the transport
