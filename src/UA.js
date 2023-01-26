@@ -801,9 +801,10 @@ module.exports = function (SIP, environment) {
                 usePreloadedRoute: false,
                 //string to be inserted into User-Agent request header
                 userAgentString: SIP.C.USER_AGENT,
-                natsHost: "127.0.0.1",
-                natsPort: 4222,
-                natsSubscription: "sip-messages",
+                natsConfig: {
+                    servers: ['127.0.0.1:4222'],
+                    subscription: 'sip-messages'
+                },
                 // Session parameters
                 iceCheckingTimeout: 5000,
                 noAnswerTimeout: 60,
@@ -1033,7 +1034,7 @@ module.exports = function (SIP, environment) {
                 "hackWssInTransport", //false
                 "iceCheckingTimeout", "instanceId", "noAnswerTimeout", // 30 seconds.
                 "password", "registerExpires", // 600 seconds.
-                "registrarServer", "reliable", "rel100", "replaces", "userAgentString", "natsHost", "natsPort", "natsSubscription", //SIP.C.USER_AGENT
+                "registrarServer", "reliable", "rel100", "replaces", "userAgentString", "natsConfig", //SIP.C.USER_AGENT
                 "autostart", "doUAS", "cluster", "stunServers", "traceSip", "turnServers", "usePreloadedRoute", "wsServerMaxReconnection", "wsServerReconnectionTimeout", "mediaHandlerFactory", "optionsHandler", "media", "mediaConstraints", "authenticationFactory",
                 // Post-configuration generated parameters
                 "via_core_value", "viaHost", "viaPort"
@@ -1334,23 +1335,9 @@ module.exports = function (SIP, environment) {
                     return userAgentString;
                 }
             },
-            natsHost: function (natsHost) {
-                if (typeof natsHost === 'string') {
-                    return natsHost;
-                }
-            },
-            natsPort: function (natsPort) {
-                // if (!isNaN(natsPort)) {
-                //     value = Number(natsPort);
-                //     if (value > 0) {
-                //         return value;
-                //     }
-                // }
-                return natsPort;
-            },
-            natsSubscription: function (natsSubscription) {
-                if (typeof natsSubscription === 'string') {
-                    return natsSubscription;
+            natsConfig: function (natsConfig) {
+                if (typeof natsConfig === 'object') {
+                    return natsConfig;
                 }
             },
             usePreloadedRoute: function (usePreloadedRoute) {

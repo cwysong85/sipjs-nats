@@ -3,7 +3,7 @@ const nats = require('nats');
 
 const publish = async function () {
 
-    const nc = await nats.connect({ servers: `localhost:4222` });
+    const nc = await nats.connect({ servers: `35.203.53.7:4222` });
     console.log(`connected to ${nc.getServer()}`);
 
     const sub = nc.subscribe('sip-messages');

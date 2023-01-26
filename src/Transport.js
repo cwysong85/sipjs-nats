@@ -45,64 +45,31 @@ module.exports = function (SIP, nats) {
          */
         send: function (host, port, msg) {
 
-            console.log('Message to send', msg);
+            if (this.ua.configuration.traceSip === true) {
+                this.logger.log('sending NATs message:\n\n' + msg + '\n');
+            }
+            const sc = nats.StringCodec();
+            this.server.nc.publish(`edge.to`, sc.encode(msg));
 
-            console.log('To host and port: ', host, port);
-
-            // var message = msg.toString();
-
-            // if (this.ua.configuration.traceSip === true) {
-            //     this.logger.log('sending UDP message:\n\n' + message + '\n');
-            // }
-
-            // var msgToSend = new Buffer(message);
-
-            // this.server.send(msgToSend, 0, msgToSend.length, port, host, function(err) {
-            //     if (err) {
-            //         console.log(err);
-            //         return false;
-            //     }
-            // });
             return true;
         },
 
         /**
-         * Connect socket.
+         * Connect to NATs server(s)
          */
         connect: async function () {
             var transport = this;
 
-            // this.server = dgram.createSocket('udp4');
-
-            // this.server.on('listening', function() {
-            //     transport.client = transport.server;
-            //     transport.connected = true;
-
-            //     // Disable closed
-            //     transport.closed = false;
-
-            //     // Trigger onTransportConnected callback
-            //     transport.ua.onTransportConnected(transport);
-            // });
-
-            // this.server.on('message', function(msg) {
-            //     transport.onMessage({
-            //         data: msg
-            //     });
-            // });
-
-            // this.server.bind(this.ua.configuration.uri.port, this.ua.configuration.bind);
-
-            const nc = await nats.connect({ servers: `${this.ua.configuration.natsHost}:${this.ua.configuration.natsPort}` });
+            const nc = await nats.connect({ servers: '35.203.53.7:4222' });
 
             console.log(`connected to ${nc.getServer()}`);
+            transport.server.nc = nc;
             transport.connected = true;
             transport.closed = false;
             transport.ua.onTransportConnected(transport);
 
             const sc = nats.StringCodec();
-
-            const sub = nc.subscribe(this.ua.configuration.natsSubscription);
+            const sub = nc.subscribe(`edge.from`);
 
             (async () => {
                 for await (const m of sub) {
@@ -110,10 +77,8 @@ module.exports = function (SIP, nats) {
                         data: sc.decode(m.data)
                     })
                 }
-                console.log(`subscription to "${this.ua.configuration.natsSubscription}" closed`);
+                console.log(`subscription to "${this.ua.configuration.natsConfig.subscription}" closed`);
             })();
-
-            // nc.publish(this.ua.configuration.natsSubscription, sc.encode("SIP NATs test publish message"));
 
             await nc.closed();
 

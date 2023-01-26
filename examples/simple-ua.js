@@ -8,8 +8,85 @@ class MediaHandler {
     render() { }
     mute() { }
     unmute() { }
-    getDescription(onSuccess, onFailure, mediaHint) { }
-    setDescription(description, onSuccess, onFailure) { }
+    getDescription(onSuccess, onFailure, mediaHint) {
+        if (mediaHint) {
+            // right now we assume m=message or m=audio depending on the mediaHint value
+            if (mediaHint.audio) {
+                onFailure('Audio is not supported');
+                // create RTP session
+                // if (!this.rtpSession) {
+                //   // this.rtpSession = new RTPStack.Session();
+                // }
+                //
+                // this.rtpSession.getDescription(onSuccess, onFailure, mediaHint);
+            } else {
+                // Create MSRP session, if none created
+                // if (!this.msrpSession) {
+                //     this.msrpSession = msrp.SessionController.createSession();
+                // }
+                // this.msrpSession.getDescription(onSuccess, onFailure, mediaHint);
+                onFailure('Message is not supported');
+            }
+        } else {
+            // only time we don't have a mediaHint is when our client is presented with a session. We should already have a
+            // MSRP session or RTP session
+            if (this.msrpSession) {
+                //   this.msrpSession.getDescription(onSuccess, onFailure, mediaHint);
+            } else if (this.rtpSession) {
+                //   this.rtpSession.getDescription(onSuccess, onFailure, mediaHint);
+            } else {
+                //   onFailure();
+            }
+            onFailure();
+        }
+    }
+    setDescription(description, onSuccess, onFailure) {
+        // find m= line to figure out which type of media to handle
+        // var sdp = new msrp.Sdp.Session(description);
+        var sdp = null;
+
+        if (!sdp) {
+            return onFailure();
+        }
+
+        if (!sdp.media) {
+            return onFailure();
+        }
+
+        for (var i = 0; i < sdp.media.length; i++) {
+            if (sdp.media[i].media === 'audio') {
+                // throw 'Audio is not currently supported';
+                // Audio SDP
+                // if (!this.rtpSession) {
+                //     // create rtp session
+                //     // this.rtpSession = new RTPStack.Session();
+                // }
+
+                // this.rtpSession.setDescription(description, onSuccess, onFailure);
+                onFailure('Audio not supported');
+                break;
+            } else if (sdp.media[i].media === 'message') {
+
+                // this.session.mediaHandler.render({
+                //     renderHint: {
+                //         remote: {
+                //             audio: false
+                //         }
+                //     }
+                // });
+
+                //MSRP SDP
+                // if (!this.msrpSession) {
+                //     console.log('No MSRP session yet, setup one.');
+                //     this.msrpSession = msrp.SessionController.createSession();
+                // }
+
+                // this.msrpSession.setDescription(description, onSuccess, onFailure);
+                onFailure('Message not supported');
+                break;
+            }
+        }
+    }
 }
 
 
@@ -17,14 +94,12 @@ const server = new SIPUDP.UA({
     // provide a valid URI here
     uri: 'simple-ua@localhost',
 
-    // NATs host
-    natsHost: '127.0.0.1',
-
-    // NATs port
-    natsPort: 4222,
-
-    // NATs subscription
-    natsSubscription: 'sip-messages',
+    natsConfig: {
+        servers: [
+            '35.203.53.7:4222'
+        ],
+        subscription: 'sip-messages'
+    },
 
     // auto start...
     autostart: true,
@@ -37,6 +112,8 @@ const server = new SIPUDP.UA({
 
     // enable UAS support
     doUAS: true,
+
+    hackViaTcp: true,
 
     // Custom media handler - Enabled for custom media handling
     mediaHandlerFactory: (session) => {
