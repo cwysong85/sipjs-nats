@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Simple UA - WebRTC</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+</head>
+
+<body>
+    <!--[if lt IE 7]>
+            <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="#">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+    <div class="col-lg-6 mx-auto">
+        <div class="px-4 py-5 my-5 text-center">
+            <h1 class="display-5 fw-bold">
+                Simple UA - WebRTC
+            </h1>
+            <div id="audio" class="m-3">
+                <div class="p-2">
+                    <div class="label">Call Audio</div>
+                    <audio id="audio" autoplay controls></audio>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="btn btn-primary m-1" id="answerButton">Answer</button>
+                <button type="button" class="btn btn-danger m-1" id="hangupButton">Hangup</button>
+            </div>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+
+        const audio = document.querySelector('audio#audio');
+        const answerButton = document.querySelector('button#answerButton');
+        const hangupButton = document.querySelector('button#hangupButton');
+
+        hangupButton.disabled = true;
+        answerButton.disabled = true;
+        answerButton.onclick = answer;
+        hangupButton.onclick = hangup;
+
+        let offerSDP = { type: 'offer', sdp: '' };
+        let answerSDP = null;
+
+        socket.on('offer-sdp', function (desc) {
+            console.log('Received Remote SDP ', desc);
+            offerSDP.sdp = desc;
+            answerButton.disabled = false;
+        });
+
+        // const offerOptions = {
+        //     offerToReceiveAudio: 1,
+        //     offerToReceiveVideo: 0,
+        //     voiceActivityDetection: false
+        // };
+
+        var localStream;
+        var peerConnection;
+
+        if (navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({
+                audio: true,
+                video: false
+            }).then(getUserMediaSuccess).catch((err) => {
+                console.log(err);
+            });
+        } else {
+            alert('Your browser does not support getUserMedia API');
+        }
+
+        function getUserMediaSuccess(stream) {
+            localStream = stream;
+        }
+
+        function answer() {
+            peerConnection = new RTCPeerConnection({
+                iceServers: [
+                    { urls: 'stun:stun.stunprotocol.org:3478' },
+                    { urls: 'stun:stun.l.google.com:19302' },
+                ],
+                rtcpMuxPolicy: "negotiate"
+            });
+            peerConnection.onicecandidate = e => {
+                if (e.candidate) {
+                    peerConnection.addIceCandidate(e.candidate).then(
+                        () => onAddIceCandidateSuccess(),
+                        err => onAddIceCandidateError(err)
+                    );
+                    console.log(`ICE candidate:\n${e.candidate ? e.candidate.candidate : '(null)'}`);
+                }
+            }
+            peerConnection.ontrack = gotRemoteStream;
+            peerConnection.addStream(localStream);
+
+            peerConnection.setRemoteDescription(new RTCSessionDescription(offerSDP)).then(() => {
+                peerConnection.createAnswer()
+                    .then((desc) => {
+                        peerConnection.setLocalDescription(desc).then(() => {
+                            socket.emit('answer-sdp', desc.sdp);
+                        })
+                    })
+                    .catch((err) => console.log('Answer sdp issue: ', err))
+            });
+        }
+
+        function hangup() {
+
+        }
+
+        function gotRemoteStream(e) {
+            if (audio.srcObject !== e.streams[0]) {
+                audio.srcObject = e.streams[0];
+                console.log('Received remote stream');
+            }
+        }
+
+        function onAddIceCandidateSuccess() {
+            console.log('AddIceCandidate success.');
+        }
+
+        function onAddIceCandidateError(error) {
+            console.log(`Failed to add ICE Candidate: ${error.toString()}`);
+        }
+
+    </script>
+</body>
+
+</html>
